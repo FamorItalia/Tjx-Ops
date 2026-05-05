@@ -9,14 +9,21 @@ if errorlevel 1 (
   exit /b 1
 )
 
-echo [1/2] Install dipendenze frontend...
+echo [0/3] Encoding check pre-release...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%OPSDIR%check-encoding.ps1"
+if errorlevel 1 (
+  echo Errore check encoding
+  exit /b 1
+)
+
+echo [1/3] Install dipendenze frontend...
 call npm install
 if errorlevel 1 (
   echo Errore npm install
   exit /b 1
 )
 
-echo [2/2] Build frontend produzione...
+echo [2/3] Build frontend produzione...
 call npm run build
 if errorlevel 1 (
   echo Errore npm run build

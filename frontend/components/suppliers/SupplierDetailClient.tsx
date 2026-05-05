@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, FormEvent, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useMemo, useRef, useState } from "react";
 
 import type { SupplierDocumentRead, SupplierProductRead, SupplierRead } from "@/lib/api/types";
 import { formatDateTime } from "@/lib/utils/format";
@@ -63,6 +63,9 @@ export function SupplierDetailClient({ initialSupplier, initialProducts, initial
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const subjectRef = useRef<HTMLInputElement | null>(null);
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null);
+  const [templateTarget, setTemplateTarget] = useState<"subject" | "body">("body");
 
   const hasProducts = products.length > 0;
 
@@ -191,6 +194,23 @@ export function SupplierDetailClient({ initialSupplier, initialProducts, initial
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore eliminazione documento");
     }
+  }
+
+  function insertPlaceholder(token: string) {
+    const target = templateTarget === "subject" ? subjectRef.current : bodyRef.current;
+    const current = templateTarget === "subject" ? form.email_subject_template : form.email_order_template;
+    if (!target) {
+      onChange(templateTarget === "subject" ? "email_subject_template" : "email_order_template", current + token);
+      return;
+    }
+    const start = target.selectionStart ?? current.length;
+    const end = target.selectionEnd ?? current.length;
+    const next = `${current.slice(0, start)}${token}${current.slice(end)}`;
+    onChange(templateTarget === "subject" ? "email_subject_template" : "email_order_template", next);
+    setTimeout(() => {
+      target.focus();
+      target.setSelectionRange(start + token.length, start + token.length);
+    }, 0);
   }
 
   return (
@@ -372,19 +392,29 @@ export function SupplierDetailClient({ initialSupplier, initialProducts, initial
         </div>
         <label className="muted">Template oggetto</label>
         <input
+          ref={subjectRef}
           className="input"
           value={form.email_subject_template}
+          onFocus={() => setTemplateTarget("subject")}
           onChange={(e) => onChange("email_subject_template", e.target.value)}
           placeholder="Es: ORDINE TJX - PO# {{po}} - {{brand}}"
           style={{ marginBottom: 10 }}
         />
-        <div className="muted" style={{ marginBottom: 8 }}>
-          Placeholder disponibili: {`{{po}}`} {`{{brand}}`} {`{{supplier}}`} {`{{fornitore}}`} {`{{start_ship_date}}`} {`{{cancel_ship_date}}`} {`{{contact_name}}`} {`{{supplier_company}}`}
+        <div className="panel" style={{ marginBottom: 10, padding: 10 }}>
+          <div className="muted" style={{ marginBottom: 8 }}>Guida placeholder (clic per inserire)</div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 8 }}>
+            {["{{po}}", "{{brand}}", "{{supplier}}", "{{fornitore}}", "{{start_ship_date}}", "{{cancel_ship_date}}", "{{contact_name}}", "{{supplier_company}}"].map((ph) => (
+              <button key={ph} type="button" className="btn" onClick={() => insertPlaceholder(ph)}>{ph}</button>
+            ))}
+          </div>
+          <div className="muted">Campo attivo: <strong>{templateTarget === "subject" ? "Oggetto" : "Corpo"}</strong> (clicca nel campo per cambiarlo)</div>
         </div>
         <label className="muted">Template corpo</label>
         <textarea
+          ref={bodyRef}
           className="input"
           rows={8}
+          onFocus={() => setTemplateTarget("body")}
           value={form.email_order_template}
           onChange={(e) => onChange("email_order_template", e.target.value)}
           placeholder={"Inserisci il testo base email. Puoi usare placeholder, es:\nGentile {{contact_name}},\nin allegato inviamo ordine PO {{po}}."}

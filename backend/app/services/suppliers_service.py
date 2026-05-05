@@ -203,7 +203,7 @@ class SuppliersService:
 
         existing = self.repo.get_by_name_key(key)
         if existing is not None:
-            raise ValueError(f"Fornitore giÃ  presente: {fornitore}")
+            raise ValueError(f"Fornitore già presente: {fornitore}")
 
         dedup: list[str] = []
         seen: set[str] = set()

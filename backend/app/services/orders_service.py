@@ -2193,7 +2193,7 @@ class OrdersService:
             if not normalized_vendor_style:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="vendor_style non puÃ² essere vuoto.",
+                    detail="vendor_style non può essere vuoto.",
                 )
             if line.vendor_style != normalized_vendor_style:
                 line.vendor_style = normalized_vendor_style

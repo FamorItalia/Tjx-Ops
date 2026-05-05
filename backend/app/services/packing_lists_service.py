@@ -202,8 +202,8 @@ class PackingListsService:
         candidate_paths = [source_pdf_path]
         if "Tjx operatività" in source_pdf_path:
             candidate_paths.append(source_pdf_path.replace("Tjx operatività", "TJXOPE~1"))
-        if "Tjx operativitÃ " in source_pdf_path:
-            candidate_paths.append(source_pdf_path.replace("Tjx operativitÃ ", "TJXOPE~1"))
+        if "Tjx operatività" in source_pdf_path:
+            candidate_paths.append(source_pdf_path.replace("Tjx operatività", "TJXOPE~1"))
         if "\\TEMPLATES\\" in source_pdf_path:
             suffix = source_pdf_path.split("\\TEMPLATES\\", 1)[1]
             candidate_paths.append(f"C:\\Progetti\\TJXOPE~1\\TEMPLATES\\{suffix}")

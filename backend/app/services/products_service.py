@@ -219,7 +219,7 @@ class ProductsService:
 
         existing = self.repo.get_by_style_key(style_key)
         if existing is not None:
-            raise ValueError(f"Prodotto giÃ  presente con TJX STYLE: {tjx_style}")
+            raise ValueError(f"Prodotto già presente con TJX STYLE: {tjx_style}")
 
         row = self.repo.create(
             {
