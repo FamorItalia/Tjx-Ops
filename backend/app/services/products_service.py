@@ -5,13 +5,22 @@ import re
 from uuid import uuid4
 
 from openpyxl import Workbook, load_workbook
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
 from app.core.supplier_normalization import normalize_supplier_name
 from app.db.models.inventory import ProductInventoryManualAdjustment
 from app.repositories.products_repository import ProductsRepository
-from app.schemas.products import ProductDocumentRead, ProductImportResponse, ProductRead, ProductUpdate
+from app.schemas.products import (
+    ProductDocumentRead,
+    ProductImportResponse,
+    ProductPriceHistoryEntryRead,
+    ProductPriceHistoryRead,
+    ProductPricePointRead,
+    ProductRead,
+    ProductUpdate,
+)
 from app.schemas.products import ProductCreate
 
 
@@ -77,6 +86,38 @@ class ProductsService:
             content_type=row.content_type,
             size_bytes=row.size_bytes,
             uploaded_at=row.uploaded_at,
+        )
+
+    @staticmethod
+    def _same_number(a: float | None, b: float | None) -> bool:
+        if a is None and b is None:
+            return True
+        if a is None or b is None:
+            return False
+        return abs(float(a) - float(b)) < 1e-9
+
+    def _track_price_change(
+        self,
+        product_id: int,
+        purchase_before: float | None,
+        purchase_after: float | None,
+        sale_before: float | None,
+        sale_after: float | None,
+        source: str,
+    ) -> None:
+        purchase_changed = not self._same_number(purchase_before, purchase_after)
+        sale_changed = not self._same_number(sale_before, sale_after)
+        if not purchase_changed and not sale_changed:
+            return
+        self.repo.create_price_history(
+            {
+                "product_id": product_id,
+                "purchase_cost_eur_before": purchase_before,
+                "purchase_cost_eur_after": purchase_after,
+                "sale_price_eur_before": sale_before,
+                "sale_price_eur_after": sale_after,
+                "change_source": source,
+            }
         )
 
     def _documents_root(self) -> Path:
@@ -186,8 +227,18 @@ class ProductsService:
                 self.repo.create(data)
                 inserted += 1
             else:
+                prev_purchase = existing.purchase_cost_eur
+                prev_sale = existing.sale_price_eur
                 for k, v in data.items():
                     setattr(existing, k, v)
+                self._track_price_change(
+                    product_id=existing.id,
+                    purchase_before=prev_purchase,
+                    purchase_after=existing.purchase_cost_eur,
+                    sale_before=prev_sale,
+                    sale_after=existing.sale_price_eur,
+                    source="import",
+                )
                 updated += 1
 
         self.db.commit()
@@ -243,6 +294,14 @@ class ProductsService:
                 "document_p2": payload.document_p2,
             }
         )
+        self._track_price_change(
+            product_id=row.id,
+            purchase_before=None,
+            purchase_after=row.purchase_cost_eur,
+            sale_before=None,
+            sale_after=row.sale_price_eur,
+            source="create",
+        )
         self.db.commit()
         self.db.refresh(row)
         return self._to_read(row)
@@ -257,6 +316,8 @@ class ProductsService:
 
         prev_stock_product = row.stock_product_units
         prev_stock_packaging = row.stock_packaging_units
+        prev_purchase = row.purchase_cost_eur
+        prev_sale = row.sale_price_eur
         data = payload.model_dump(exclude_unset=True)
         for field, value in data.items():
             setattr(row, field, value)
@@ -280,9 +341,102 @@ class ProductsService:
                 )
             )
 
+        self._track_price_change(
+            product_id=row.id,
+            purchase_before=prev_purchase,
+            purchase_after=row.purchase_cost_eur,
+            sale_before=prev_sale,
+            sale_after=row.sale_price_eur,
+            source="update",
+        )
+
         self.db.commit()
         self.db.refresh(row)
         return self._to_read(row)
+
+    def get_price_history(
+        self,
+        product_id: int,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> ProductPriceHistoryRead | None:
+        product = self.repo.get_by_id(product_id)
+        if product is None:
+            return None
+
+        try:
+            entries = self.repo.list_price_history(product_id=product_id, from_date=from_date, to_date=to_date)
+        except OperationalError:
+            entries = []
+        entry_reads = [ProductPriceHistoryEntryRead.model_validate(x, from_attributes=True) for x in entries]
+        chart_points = [
+            ProductPricePointRead(
+                date=x.changed_at,
+                purchase_cost_eur=x.purchase_cost_eur_after,
+                sale_price_eur=x.sale_price_eur_after,
+            )
+            for x in entries
+        ]
+        return ProductPriceHistoryRead(
+            product_id=product_id,
+            from_date=from_date,
+            to_date=to_date,
+            entries=entry_reads,
+            chart_points=chart_points,
+        )
+
+    def export_price_history_excel(
+        self,
+        product_id: int,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> bytes | None:
+        history = self.get_price_history(product_id=product_id, from_date=from_date, to_date=to_date)
+        if history is None:
+            return None
+
+        wb = Workbook()
+        ws = wb.active
+        ws.title = "STORICO_PREZZI"
+        ws.append(
+            [
+                "DATA_MODIFICA",
+                "ORIGINE",
+                "COSTO_ACQUISTO_PRIMA",
+                "COSTO_ACQUISTO_DOPO",
+                "VARIAZIONE_COSTO",
+                "PREZZO_VENDITA_PRIMA",
+                "PREZZO_VENDITA_DOPO",
+                "VARIAZIONE_PREZZO_VENDITA",
+            ]
+        )
+        for row in history.entries:
+            delta_purchase = (
+                (row.purchase_cost_eur_after or 0) - (row.purchase_cost_eur_before or 0)
+                if row.purchase_cost_eur_after is not None and row.purchase_cost_eur_before is not None
+                else None
+            )
+            delta_sale = (
+                (row.sale_price_eur_after or 0) - (row.sale_price_eur_before or 0)
+                if row.sale_price_eur_after is not None and row.sale_price_eur_before is not None
+                else None
+            )
+            ws.append(
+                [
+                    row.changed_at.replace(tzinfo=None) if row.changed_at else None,
+                    row.change_source,
+                    row.purchase_cost_eur_before,
+                    row.purchase_cost_eur_after,
+                    delta_purchase,
+                    row.sale_price_eur_before,
+                    row.sale_price_eur_after,
+                    delta_sale,
+                ]
+            )
+
+        out = BytesIO()
+        wb.save(out)
+        return out.getvalue()
 
     def list_product_documents(self, product_id: int) -> list[ProductDocumentRead]:
         return [self._to_document_read(x) for x in self.repo.list_documents_by_product(product_id)]

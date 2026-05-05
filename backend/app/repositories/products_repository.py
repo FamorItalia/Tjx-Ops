@@ -1,6 +1,8 @@
+from datetime import datetime
+
 from sqlalchemy.orm import Session
 
-from app.db.models.master_data import Product, ProductDocument
+from app.db.models.master_data import Product, ProductDocument, ProductPriceHistory
 
 
 class ProductsRepository:
@@ -53,3 +55,22 @@ class ProductsRepository:
         self.db.delete(row)
         self.db.flush()
         return row
+
+    def create_price_history(self, data: dict) -> ProductPriceHistory:
+        row = ProductPriceHistory(**data)
+        self.db.add(row)
+        self.db.flush()
+        return row
+
+    def list_price_history(
+        self,
+        product_id: int,
+        from_date: datetime | None = None,
+        to_date: datetime | None = None,
+    ) -> list[ProductPriceHistory]:
+        q = self.db.query(ProductPriceHistory).filter(ProductPriceHistory.product_id == product_id)
+        if from_date is not None:
+            q = q.filter(ProductPriceHistory.changed_at >= from_date)
+        if to_date is not None:
+            q = q.filter(ProductPriceHistory.changed_at <= to_date)
+        return q.order_by(ProductPriceHistory.changed_at.asc(), ProductPriceHistory.id.asc()).all()

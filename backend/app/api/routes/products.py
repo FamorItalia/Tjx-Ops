@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from fastapi.responses import FileResponse, Response
 from sqlalchemy.orm import Session
 
@@ -11,6 +11,7 @@ from app.schemas.products import (
     ProductDocumentRead,
     ProductImportResponse,
     ProductInventoryHistoryRead,
+    ProductPriceHistoryRead,
     ProductRead,
     ProductUpdate,
 )
@@ -100,6 +101,47 @@ def get_product_inventory_history(product_id: int, db: Session = Depends(get_db)
             detail=f"Prodotto non trovato: {product_id}",
         )
     return ProductInventoryHistoryRead.model_validate(history)
+
+
+@router.get("/{product_id}/price-history", response_model=ProductPriceHistoryRead)
+def get_product_price_history(
+    product_id: int,
+    from_date: datetime | None = Query(default=None),
+    to_date: datetime | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> ProductPriceHistoryRead:
+    service = ProductsService(db)
+    history = service.get_price_history(product_id=product_id, from_date=from_date, to_date=to_date)
+    if history is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Prodotto non trovato: {product_id}",
+        )
+    return history
+
+
+@router.get("/{product_id}/price-history/export/excel")
+def export_product_price_history_excel(
+    product_id: int,
+    from_date: datetime | None = Query(default=None),
+    to_date: datetime | None = Query(default=None),
+    db: Session = Depends(get_db),
+) -> Response:
+    service = ProductsService(db)
+    excel_bytes = service.export_price_history_excel(product_id=product_id, from_date=from_date, to_date=to_date)
+    if excel_bytes is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Prodotto non trovato: {product_id}",
+        )
+    now = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    filename = f"STORICO_PREZZI_PRODOTTO_{product_id}_{now}.xlsx"
+    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
+    return Response(
+        content=excel_bytes,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers=headers,
+    )
 
 
 @router.patch("/{product_id}", response_model=ProductRead)

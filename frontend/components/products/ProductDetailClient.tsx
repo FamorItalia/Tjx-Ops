@@ -3,13 +3,19 @@
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 
-import type { ProductDocumentRead, ProductInventoryHistoryRead, ProductRead } from "@/lib/api/types";
+import type {
+  ProductDocumentRead,
+  ProductInventoryHistoryRead,
+  ProductPriceHistoryRead,
+  ProductRead,
+} from "@/lib/api/types";
 import { formatDateTime } from "@/lib/utils/format";
 
 type Props = {
   initialProduct: ProductRead;
   initialDocuments: ProductDocumentRead[];
   initialInventoryHistory: ProductInventoryHistoryRead;
+  initialPriceHistory: ProductPriceHistoryRead;
 };
 
 type ProductFormState = {
@@ -86,15 +92,32 @@ function formatMoney(value: number | null) {
   return new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(value);
 }
 
-export function ProductDetailClient({ initialProduct, initialDocuments, initialInventoryHistory }: Props) {
+function toDateInputValue(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function daysAgo(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return toDateInputValue(d);
+}
+
+export function ProductDetailClient({ initialProduct, initialDocuments, initialInventoryHistory, initialPriceHistory }: Props) {
   const [product, setProduct] = useState(initialProduct);
   const [form, setForm] = useState<ProductFormState>(() => toFormState(initialProduct));
   const [documents, setDocuments] = useState(initialDocuments);
   const [inventoryHistory, setInventoryHistory] = useState(initialInventoryHistory);
+  const [priceHistory, setPriceHistory] = useState(initialPriceHistory);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [refreshingHistory, setRefreshingHistory] = useState(false);
+  const [refreshingPrices, setRefreshingPrices] = useState(false);
   const [showMovements, setShowMovements] = useState(false);
+  const [priceFrom, setPriceFrom] = useState(daysAgo(180));
+  const [priceTo, setPriceTo] = useState(toDateInputValue(new Date()));
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -118,6 +141,25 @@ export function ProductDetailClient({ initialProduct, initialDocuments, initialI
       setError(err instanceof Error ? err.message : "Errore caricamento storico giacenze");
     } finally {
       setRefreshingHistory(false);
+    }
+  }
+
+  async function reloadPriceHistory() {
+    setRefreshingPrices(true);
+    try {
+      const fromIso = new Date(`${priceFrom}T00:00:00`).toISOString();
+      const toIso = new Date(`${priceTo}T23:59:59`).toISOString();
+      const res = await fetch(
+        `/api/backend/products/${product.id}/price-history?from_date=${encodeURIComponent(fromIso)}&to_date=${encodeURIComponent(toIso)}`
+      );
+      const text = await res.text();
+      const data = text ? JSON.parse(text) : {};
+      if (!res.ok) throw new Error(data?.detail || "Errore caricamento storico prezzi");
+      setPriceHistory(data as ProductPriceHistoryRead);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Errore caricamento storico prezzi");
+    } finally {
+      setRefreshingPrices(false);
     }
   }
 
@@ -167,12 +209,33 @@ export function ProductDetailClient({ initialProduct, initialDocuments, initialI
       setForm(toFormState(data as ProductRead));
       setMessage("Prodotto aggiornato.");
       await reloadInventoryHistory();
+      await reloadPriceHistory();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Errore salvataggio prodotto");
     } finally {
       setSaving(false);
     }
   }
+
+  const pricePoints = priceHistory.chart_points.filter((p) => p.purchase_cost_eur != null || p.sale_price_eur != null);
+  const allValues = pricePoints.flatMap((p) => [p.purchase_cost_eur, p.sale_price_eur]).filter((v): v is number => v != null);
+  const minY = allValues.length ? Math.min(...allValues) : 0;
+  const maxY = allValues.length ? Math.max(...allValues) : 1;
+  const spanY = Math.max(maxY - minY, 0.0001);
+  const chartW = 760;
+  const chartH = 240;
+  const pad = 24;
+  const stepX = pricePoints.length > 1 ? (chartW - pad * 2) / (pricePoints.length - 1) : 0;
+
+  const yOf = (v: number) => pad + (maxY - v) * ((chartH - pad * 2) / spanY);
+  const purchasePath = pricePoints
+    .map((p, i) => (p.purchase_cost_eur == null ? null : `${i === 0 ? "M" : "L"} ${pad + i * stepX} ${yOf(p.purchase_cost_eur)}`))
+    .filter(Boolean)
+    .join(" ");
+  const salePath = pricePoints
+    .map((p, i) => (p.sale_price_eur == null ? null : `${i === 0 ? "M" : "L"} ${pad + i * stepX} ${yOf(p.sale_price_eur)}`))
+    .filter(Boolean)
+    .join(" ");
 
   async function onUpload(e: ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -414,6 +477,76 @@ export function ProductDetailClient({ initialProduct, initialDocuments, initialI
         </div>
 
       </form>
+
+      <div className="panel">
+        <div className="page-head" style={{ marginBottom: 10 }}>
+          <h2 style={{ margin: 0 }}>Storico prezzi</h2>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input className="input" type="date" value={priceFrom} onChange={(e) => setPriceFrom(e.target.value)} />
+            <input className="input" type="date" value={priceTo} onChange={(e) => setPriceTo(e.target.value)} />
+            <button className="btn" type="button" onClick={() => void reloadPriceHistory()} disabled={refreshingPrices}>
+              {refreshingPrices ? "Aggiornamento..." : "Aggiorna periodo"}
+            </button>
+            <a
+              className="btn"
+              href={`/api/backend/products/${product.id}/price-history/export/excel?from_date=${encodeURIComponent(new Date(`${priceFrom}T00:00:00`).toISOString())}&to_date=${encodeURIComponent(new Date(`${priceTo}T23:59:59`).toISOString())}`}
+            >
+              Export storico Excel
+            </a>
+          </div>
+        </div>
+
+        <div className="card" style={{ marginBottom: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 14, height: 2, background: "#1f4a8a", display: "inline-block" }} />
+              Costo acquisto
+            </span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 14, height: 2, background: "#0f8a5f", display: "inline-block" }} />
+              Prezzo vendita
+            </span>
+          </div>
+          {pricePoints.length > 0 ? (
+            <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 260, border: "1px solid #dde4ee", borderRadius: 8 }}>
+              <line x1={pad} y1={pad} x2={pad} y2={chartH - pad} stroke="#c9d2e3" />
+              <line x1={pad} y1={chartH - pad} x2={chartW - pad} y2={chartH - pad} stroke="#c9d2e3" />
+              {purchasePath ? <path d={purchasePath} fill="none" stroke="#1f4a8a" strokeWidth="2.5" /> : null}
+              {salePath ? <path d={salePath} fill="none" stroke="#0f8a5f" strokeWidth="2.5" /> : null}
+            </svg>
+          ) : (
+            <div className="muted">Nessuna modifica prezzo nel periodo selezionato.</div>
+          )}
+        </div>
+
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Data modifica</th>
+                <th>Costo acquisto (prima {"->"} dopo)</th>
+                <th>Prezzo vendita (prima {"->"} dopo)</th>
+                <th>Origine</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...priceHistory.entries].reverse().map((row) => (
+                <tr key={row.id}>
+                  <td>{formatDateTime(row.changed_at)}</td>
+                  <td>{formatMoney(row.purchase_cost_eur_before)} {"->"} {formatMoney(row.purchase_cost_eur_after)}</td>
+                  <td>{formatMoney(row.sale_price_eur_before)} {"->"} {formatMoney(row.sale_price_eur_after)}</td>
+                  <td>{row.change_source || "-"}</td>
+                </tr>
+              ))}
+              {priceHistory.entries.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="muted">Nessuna modifica prezzo registrata.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <div className="panel">
         <div className="page-head" style={{ marginBottom: 10 }}>

@@ -160,6 +160,10 @@ def _ensure_sqlite_columns() -> None:
             "ON products(tjx_style_key)"
         )
         conn.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS ix_product_price_history_product_id_changed_at "
+            "ON product_price_history(product_id, changed_at)"
+        )
+        conn.exec_driver_sql(
             "CREATE UNIQUE INDEX IF NOT EXISTS ix_suppliers_name_key "
             "ON suppliers(name_key)"
         )

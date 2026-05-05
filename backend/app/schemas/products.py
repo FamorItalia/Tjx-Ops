@@ -140,3 +140,30 @@ class ProductInventoryHistoryRead(BaseModel):
     stock_packaging_units: float | None = None
     movements: list[ProductInventoryMovementRead]
     alerts: list[ProductInventoryAlertRead]
+
+
+class ProductPriceHistoryEntryRead(BaseModel):
+    id: int
+    product_id: int
+    purchase_cost_eur_before: float | None = None
+    purchase_cost_eur_after: float | None = None
+    sale_price_eur_before: float | None = None
+    sale_price_eur_after: float | None = None
+    change_source: str | None = None
+    changed_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class ProductPricePointRead(BaseModel):
+    date: datetime
+    purchase_cost_eur: float | None = None
+    sale_price_eur: float | None = None
+
+
+class ProductPriceHistoryRead(BaseModel):
+    product_id: int
+    from_date: datetime | None = None
+    to_date: datetime | None = None
+    entries: list[ProductPriceHistoryEntryRead]
+    chart_points: list[ProductPricePointRead]

@@ -82,6 +82,27 @@ class Product(Base):
     document_p2: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
 
+class ProductPriceHistory(Base):
+    __tablename__ = "product_price_history"
+    __table_args__ = (
+        Index("ix_product_price_history_product_id_changed_at", "product_id", "changed_at"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    product_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("products.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    purchase_cost_eur_before: Mapped[float | None] = mapped_column(Float, nullable=True)
+    purchase_cost_eur_after: Mapped[float | None] = mapped_column(Float, nullable=True)
+    sale_price_eur_before: Mapped[float | None] = mapped_column(Float, nullable=True)
+    sale_price_eur_after: Mapped[float | None] = mapped_column(Float, nullable=True)
+    change_source: Mapped[str | None] = mapped_column(String(40), nullable=True)  # create | update | import
+    changed_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow, index=True)
+
+
 class SupplierDocument(Base):
     __tablename__ = "supplier_documents"
     __table_args__ = (

@@ -75,6 +75,31 @@ export type ProductInventoryHistoryRead = {
   alerts: ProductInventoryAlertRead[];
 };
 
+export type ProductPriceHistoryEntryRead = {
+  id: number;
+  product_id: number;
+  purchase_cost_eur_before: number | null;
+  purchase_cost_eur_after: number | null;
+  sale_price_eur_before: number | null;
+  sale_price_eur_after: number | null;
+  change_source: string | null;
+  changed_at: string;
+};
+
+export type ProductPricePointRead = {
+  date: string;
+  purchase_cost_eur: number | null;
+  sale_price_eur: number | null;
+};
+
+export type ProductPriceHistoryRead = {
+  product_id: number;
+  from_date: string | null;
+  to_date: string | null;
+  entries: ProductPriceHistoryEntryRead[];
+  chart_points: ProductPricePointRead[];
+};
+
 export type OrderListItem = {
   id: number;
   document_family: string;
