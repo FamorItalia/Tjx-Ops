@@ -1,0 +1,292 @@
+﻿{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}{\f1 Arial;}}
+\fs22
+\par\b\fs36 Manuale d'Uso - TJX Ops Hub\b0\fs22\par
+\par
+\par Versione: 1.0  
+\par Ambito: uso operativo interno ufficio
+\par
+\par\b\fs30 1) Accesso al portale\b0\fs22\par
+\par
+\par 1. Aprire il browser.
+\par 2. Inserire l'URL del portale (esempio interno): `http://<IP_PC_SERVER>:3001/login`
+\par 3. Inserire utente e password.
+\par 4. Una volta autenticati, la sessione resta attiva fino a uscita manuale (`Esci`).
+\par
+\par\b\fs30 2) Menu principale\b0\fs22\par
+\par
+\par\tab\bullet\tab Dashboard
+\par\tab\bullet\tab Archivio Ordini (ordini segnati spediti)
+\par\tab\bullet\tab Fornitori
+\par\tab\bullet\tab Prodotti
+\par\tab\bullet\tab Insegne
+\par\tab\bullet\tab Errori
+\par\tab\bullet\tab Nuovo Import
+\par\tab\bullet\tab Utenti (solo profili abilitati)
+\par
+\par\b\fs30 3) Flusso operativo standard (ordine cliente -> documenti)\b0\fs22\par
+\par
+\par 1. Andare su `Nuovo Import`.
+\par 2. Caricare PDF ordine cliente.
+\par 3. Verificare preview parsing (PO, customer, date, righe, warning).
+\par 4. Confermare salvataggio ordine.
+\par 5. Aprire l'ordine da `Dashboard`.
+\par 6. Verificare/aggiornare:
+\par    - righe ordine
+\par    - nested (automatico o manuale)
+\par    - quantitÃ  operative
+\par    - dati DC (fattura/data/pesi/volumi/pallet se override)
+\par 7. Generare documenti DC (Packing List, DLE, Sfarinati, P2 in base ai flag prodotti).
+\par 8. Scaricare singoli documenti o `Scarica tutto PDF/Excel`.
+\par 9. Quando completato, usare `Segna spedito`.
+\par
+\par\b\fs30 4) Dashboard\b0\fs22\par
+\par
+\par Funzioni principali:
+\par\tab\bullet\tab Elenco ordini da spedire
+\par\tab\bullet\tab Filtri rapidi
+\par\tab\bullet\tab Apertura dettaglio ordine (`Apri`)
+\par\tab\bullet\tab Azioni riga:
+\par   - `Segna spedito`
+\par   - `Elimina` (con conferma)
+\par\tab\bullet\tab Notifiche giacenze (visibili solo se presenti alert attivi)
+\par
+\par\b\fs30 5) Nuovo Import\b0\fs22\par
+\par
+\par Funzioni:
+\par\tab\bullet\tab Upload PDF reale
+\par\tab\bullet\tab Test parser
+\par\tab\bullet\tab Salvataggio ordine
+\par
+\par Controlli da fare sempre prima di salvare:
+\par\tab\bullet\tab PO corretto
+\par\tab\bullet\tab Customer corretto
+\par\tab\bullet\tab Date ship/cancel corrette
+\par\tab\bullet\tab Numero righe prodotto corretto
+\par\tab\bullet\tab Warning parser da valutare
+\par
+\par\b\fs30 6) Dettaglio Ordine (pagina operativa centrale)\b0\fs22\par
+\par
+\par\b\fs26 6.1 Header ordine\b0\fs22\par
+\par
+\par Mostra:
+\par\tab\bullet\tab PO
+\par\tab\bullet\tab Customer
+\par\tab\bullet\tab Fornitore
+\par\tab\bullet\tab Start Ship Date
+\par\tab\bullet\tab Cancel Date
+\par\tab\bullet\tab Stato (Programmato / Pronto al ritiro / In ritardo)
+\par
+\par Azioni:
+\par\tab\bullet\tab Aggiorna
+\par\tab\bullet\tab Segna spedito
+\par\tab\bullet\tab Elimina ordine
+\par
+\par\b\fs26 6.2 Ordine ricevuto\b0\fs22\par
+\par
+\par Tabella con:
+\par\tab\bullet\tab Vendor Style
+\par\tab\bullet\tab Master Carton
+\par\tab\bullet\tab Descrizione
+\par\tab\bullet\tab Nest Code
+\par\tab\bullet\tab QuantitÃ  per DC
+\par\tab\bullet\tab Totali PCS e CS
+\par\tab\bullet\tab Valori economici lato vendita (se presenti)
+\par
+\par Azioni:
+\par\tab\bullet\tab `Salva modifiche`
+\par\tab\bullet\tab `Nest manuali` (attiva gestione manuale nest)
+\par\tab\bullet\tab `Ripristina ordine originale`
+\par\tab\bullet\tab `Aggiusta qty ordine` (normalizza divisibilitÃ  pack)
+\par
+\par\b\fs26 6.3 Ordine da inviare al fornitore\b0\fs22\par
+\par
+\par Tabella operativa con:
+\par\tab\bullet\tab Stessa struttura righe/DC
+\par\tab\bullet\tab Totali PCS/CS
+\par\tab\bullet\tab Valori economici lato costo (se presenti)
+\par
+\par Azioni:
+\par\tab\bullet\tab `Applica aumento automatico +2%` (per DC, senza superare +2%)
+\par\tab\bullet\tab `Ripristina = ordine cliente`
+\par\tab\bullet\tab `Salva modifiche`
+\par\tab\bullet\tab Generazione ordine fornitore (PDF/Excel)
+\par
+\par\b\fs26 6.4 Riepilogo per DC\b0\fs22\par
+\par
+\par Per ogni DC:
+\par\tab\bullet\tab Pezzi
+\par\tab\bullet\tab Cartoni
+\par\tab\bullet\tab Volume
+\par\tab\bullet\tab Peso lordo
+\par\tab\bullet\tab Peso netto
+\par\tab\bullet\tab Pallets
+\par\tab\bullet\tab Numero fattura
+\par\tab\bullet\tab Data fattura
+\par
+\par Azioni:
+\par\tab\bullet\tab `Salva DC`
+\par\tab\bullet\tab Genera documento DC (tipo + formato)
+\par\tab\bullet\tab `Genera`
+\par
+\par Azioni globali:
+\par\tab\bullet\tab Data fattura comune + applicazione a tutti i DC
+\par\tab\bullet\tab Numero fattura progressivo (autocompilazione incrementale)
+\par\tab\bullet\tab Scarica tutto PDF
+\par\tab\bullet\tab Scarica tutto Excel
+\par\tab\bullet\tab Ripristino valori logistici calcolati
+\par
+\par\b\fs26 6.5 Documenti\b0\fs22\par
+\par
+\par I documenti sono gestiti per:
+\par\tab\bullet\tab Livello PO
+\par\tab\bullet\tab Livello PO/DC
+\par
+\par Azioni:
+\par\tab\bullet\tab Apri
+\par\tab\bullet\tab Scarica
+\par
+\par\b\fs30 7) Documenti export\b0\fs22\par
+\par
+\par\b\fs30 7.1 Packing List\b0\fs22\par
+\par
+\par\tab\bullet\tab Una packing list per ogni DC.
+\par\tab\bullet\tab Dati da ordine + anagrafiche prodotti/DC/fornitori.
+\par\tab\bullet\tab Include footer ISPM15.
+\par
+\par\b\fs30 7.2 DLE\b0\fs22\par
+\par
+\par\tab\bullet\tab Generazione per DC.
+\par\tab\bullet\tab Campi dinamici: numero fattura, data fattura, data odierna.
+\par
+\par\b\fs30 7.3 Sfarinati\b0\fs22\par
+\par
+\par\tab\bullet\tab Disponibile solo se almeno un prodotto ordine ha flag `HAS_SFARINATI = TRUE`.
+\par\tab\bullet\tab Generazione per DC.
+\par
+\par\b\fs30 7.4 P2\b0\fs22\par
+\par
+\par\tab\bullet\tab Disponibile solo se almeno un prodotto ordine ha flag `HAS_P2 = TRUE`.
+\par\tab\bullet\tab Generazione per DC.
+\par
+\par\b\fs30 8) Fornitori\b0\fs22\par
+\par
+\par Funzioni:
+\par\tab\bullet\tab Elenco fornitori
+\par\tab\bullet\tab `Aggiungi fornitore`
+\par\tab\bullet\tab Dettaglio fornitore
+\par\tab\bullet\tab Modifica anagrafica
+\par\tab\bullet\tab Upload documenti/certificazioni
+\par\tab\bullet\tab Rinomina documento
+\par\tab\bullet\tab Download documento
+\par\tab\bullet\tab Elimina documento (con conferma)
+\par\tab\bullet\tab Export Excel / Import Excel
+\par\tab\bullet\tab Template testo email modificabile
+\par
+\par\b\fs30 9) Prodotti\b0\fs22\par
+\par
+\par Funzioni:
+\par\tab\bullet\tab Elenco prodotti con ricerca/filtri
+\par\tab\bullet\tab `Aggiungi prodotto`
+\par\tab\bullet\tab Dettaglio prodotto
+\par\tab\bullet\tab Modifica dati logistici
+\par\tab\bullet\tab Gestione prezzi separata da giacenze
+\par\tab\bullet\tab Documenti allegati (upload / rename / download / elimina con conferma)
+\par\tab\bullet\tab Export Excel / Import Excel
+\par
+\par\b\fs30 10) Giacenze\b0\fs22\par
+\par
+\par Concetti:
+\par\tab\bullet\tab Gacenza prodotto
+\par\tab\bullet\tab Giacenza packaging
+\par\tab\bullet\tab Coefficiente di utilizzo
+\par
+\par Comportamento:
+\par\tab\bullet\tab Le giacenze si aggiornano con i consumi ordine.
+\par\tab\bullet\tab Alert in dashboard quando sotto soglia.
+\par\tab\bullet\tab Storico movimentazioni consultabile dal blocco dedicato.
+\par
+\par\b\fs30 11) Insegne\b0\fs22\par
+\par
+\par Pagina `Insegne`:
+\par\tab\bullet\tab 7 insegne con logo cliccabile
+\par\tab\bullet\tab Recap ultimi 12 mesi:
+\par   - Totali lavorati
+\par   - Spediti
+\par   - Da spedire
+\par   - Fatturato annuo mobile (vendita)
+\par
+\par Pagina singola insegna:
+\par\tab\bullet\tab Ordini ultimi 12 mesi
+\par\tab\bullet\tab Filtro mese/anno
+\par\tab\bullet\tab Riga per PO con totali principali
+\par
+\par\b\fs30 12) Utenti e permessi\b0\fs22\par
+\par
+\par Funzioni:
+\par\tab\bullet\tab Creazione utenti
+\par\tab\bullet\tab Assegnazione livello accesso
+\par\tab\bullet\tab Login persistente
+\par\tab\bullet\tab Logout manuale (`Esci`)
+\par\tab\bullet\tab Tracciamento modifiche via audit log backend
+\par
+\par\b\fs30 13) Errori comuni e soluzione rapida\b0\fs22\par
+\par
+\par 1. `Login fallito`
+\par\tab\bullet\tab Verificare backend attivo su porta 8000.
+\par\tab\bullet\tab Verificare credenziali utente.
+\par
+\par 2. `Documento non generato`
+\par\tab\bullet\tab Controllare che livello (PO/DC) e tipo documento siano coerenti.
+\par\tab\bullet\tab Verificare dati obbligatori DC (es. fattura/data se richiesti).
+\par
+\par 3. `Nessun documento DC disponibile`
+\par\tab\bullet\tab Verificare flag prodotto (`HAS_SFARINATI`, `HAS_P2`).
+\par\tab\bullet\tab Verificare che l'ordine abbia righe prodotto collegate a anagrafica.
+\par
+\par 4. `Ordine duplicato import`
+\par\tab\bullet\tab Il sistema deve bloccare PO giÃ  importato; se compare doppio, usare eliminazione con conferma sull'ordine errato.
+\par
+\par\b\fs30 14) Procedura giornaliera consigliata\b0\fs22\par
+\par
+\par 1. Aprire Dashboard.
+\par 2. Controllare notifiche giacenze.
+\par 3. Importare nuovi ordini.
+\par 4. Completare dettaglio ordine e dati DC.
+\par 5. Generare e scaricare documenti.
+\par 6. Segnare spediti gli ordini chiusi.
+\par
+\par ---
+\par
+\par\b\fs30 Allegato A - Screenshot da inserire (mirati)\b0\fs22\par
+\par
+\par Per un manuale utile, servono questi screenshot contestualizzati:
+\par
+\par 1. Login: pagina login + campi.
+\par 2. Dashboard: tabella ordini + azioni riga.
+\par 3. Nuovo Import: upload + preview parser + warning.
+\par 4. Dettaglio Ordine (header + ordine ricevuto).
+\par 5. Dettaglio Ordine (ordine fornitore + pulsanti +2% e ripristino).
+\par 6. Riepilogo DC: campi fattura/data + selezione tipo documento + genera.
+\par 7. Documenti generati: sezione con Apri/Scarica.
+\par 8. Fornitori: dettaglio fornitore + tab documenti.
+\par 9. Prodotti: dettaglio prodotto + blocco logistica/prezzi/giacenze.
+\par 10. Insegne: vista loghi + pagina singola insegna filtrata.
+\par 11. Notifiche giacenze: caso reale sotto soglia.
+\par 12. Utenti: pagina utenti con ruoli/livelli.
+\par
+\par Nomenclatura file consigliata:
+\par\tab\bullet\tab `01_login.png`
+\par\tab\bullet\tab `02_dashboard.png`
+\par\tab\bullet\tab `03_import_preview.png`
+\par\tab\bullet\tab `04_ordine_header_ricevuto.png`
+\par\tab\bullet\tab `05_ordine_fornitore.png`
+\par\tab\bullet\tab `06_riepilogo_dc.png`
+\par\tab\bullet\tab `07_documenti.png`
+\par\tab\bullet\tab `08_fornitore_dettaglio.png`
+\par\tab\bullet\tab `09_prodotto_dettaglio.png`
+\par\tab\bullet\tab `10_insegne.png`
+\par\tab\bullet\tab `11_alert_giacenze.png`
+\par\tab\bullet\tab `12_utenti.png`
+\par
+}

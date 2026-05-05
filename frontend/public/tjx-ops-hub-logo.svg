@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="220" height="80" viewBox="0 0 220 80" role="img" aria-label="TJX Ops Hub logo">
+  <rect width="220" height="80" fill="#ffffff"/>
+  <text x="8" y="54" font-family="Segoe UI, Arial, sans-serif" font-size="52" font-weight="800" fill="#c41230">TJX</text>
+  <rect x="120" y="15" width="12" height="12" rx="2" fill="#da2530"/>
+  <rect x="120" y="31" width="12" height="12" rx="2" fill="#6b4ea1"/>
+  <rect x="120" y="47" width="12" height="12" rx="2" fill="#1f8f7a"/>
+  <rect x="120" y="63" width="12" height="12" rx="2" fill="#d69e2e"/>
+  <path d="M138 20 h24 v6 h-17 v14 h16 v6 h-16 v19 h-7 z" fill="#424b5b"/>
+  <path d="M166 20 h26 v6 h-19 v14 h18 v6 h-18 v20 h-7 z" fill="#424b5b"/>
+</svg>

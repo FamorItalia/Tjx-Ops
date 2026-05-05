@@ -1,0 +1,33 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python backend
+backend/.venv/
+backend/__pycache__/
+backend/**/*.pyc
+backend/.pytest_cache/
+backend/.mypy_cache/
+
+# Node frontend
+frontend/node_modules/
+frontend/.next/
+frontend/.npm-cache/
+frontend/.turbo/
+
+# Runtime/generated files
+ops/logs/
+backend/output/
+*.log
+
+# Local env/secrets
+.env
+.env.*
+!.env.example
+backend/.env
+frontend/.env
+
+# Local helper deps folder
+.deps/

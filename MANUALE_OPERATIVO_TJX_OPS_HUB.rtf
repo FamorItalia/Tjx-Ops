@@ -1,0 +1,201 @@
+﻿{\rtf1\ansi\deff0
+{\fonttbl{\f0 Calibri;}{\f1 Arial;}}
+\fs22
+\par\b\fs36 Manuale Operativo - TJX Ops Hub\b0\fs22\par
+\par
+\par Versione: 1.0  
+\par Obiettivo: guida pratica su cosa fare, quando farlo, e cosa succede nel sistema.
+\par
+\par\b\fs30 1) Flusso operativo standard (da ordine cliente a spedizione)\b0\fs22\par
+\par
+\par 1. Vai su `Nuovo Import`.
+\par 2. Carica il PDF ordine cliente.
+\par 3. Controlla la preview parsing.
+\par 4. Salva lâ€™ordine.
+\par 5. Apri lâ€™ordine in Dashboard (`Apri`).
+\par 6. Verifica quantitÃ , nested, dati DC.
+\par 7. Genera documenti DC / PO.
+\par 8. Scarica documenti.
+\par 9. Segna ordine come `Spedito`.
+\par
+\par\b\fs30 2) Cosa fanno i pulsanti principali (e quando usarli)\b0\fs22\par
+\par
+\par\b\fs30 2.1 Dashboard\b0\fs22\par
+\par
+\par\tab\bullet\tab `Apri`: entra nel dettaglio ordine.
+\par\tab\bullet\tab `Segna spedito`: sposta ordine da â€œattiviâ€ a â€œspeditiâ€.
+\par\tab\bullet\tab `Elimina`: cancella ordine (con conferma).
+\par
+\par Quando usarli:
+\par\tab\bullet\tab `Segna spedito` solo a processo documentale chiuso.
+\par\tab\bullet\tab `Elimina` solo per import errato o duplicato reale.
+\par
+\par\b\fs30 2.2 Dettaglio ordine - blocco Ordine ricevuto\b0\fs22\par
+\par
+\par\tab\bullet\tab `Salva modifiche`: salva modifiche righe (vendor style, nest, quantitÃ  ricevute).
+\par\tab\bullet\tab `Nest manuali`: abilita modifica manuale del `Nest Code`.
+\par\tab\bullet\tab `Ripristina ordine originale`: ripristina i valori importati da parser.
+\par\tab\bullet\tab `Aggiusta qty ordine`: corregge quantitÃ  non divisibili con la logica pack.
+\par
+\par Quando usare `Aggiusta qty ordine`:
+\par\tab\bullet\tab warning tipo â€œunits non divisibili per store_ready/master cartonâ€.
+\par\tab\bullet\tab scenario in cui il cliente manda quantitÃ  sporche e serve allinearle.
+\par
+\par\b\fs30 2.3 Dettaglio ordine - blocco Ordine da inviare al fornitore\b0\fs22\par
+\par
+\par\tab\bullet\tab `Applica aumento automatico +2%`: applica aumento per DC senza superare il +2%.
+\par\tab\bullet\tab `Ripristina = ordine cliente`: annulla modifiche operative e riallinea al cliente.
+\par\tab\bullet\tab `Salva modifiche`: salva quantitÃ  operative manuali.
+\par\tab\bullet\tab `Genera ordine fornitore`: produce documento fornitore.
+\par
+\par\b\fs30 2.4 Riepilogo per DC\b0\fs22\par
+\par
+\par\tab\bullet\tab `Salva DC`: salva numero fattura, data fattura e override logistici.
+\par\tab\bullet\tab `Genera`: genera documento selezionato per quel DC.
+\par\tab\bullet\tab `Applica data a tutti i DC`: copia data fattura comune nei singoli DC.
+\par\tab\bullet\tab `Scarica tutto PDF`: genera (se manca) e scarica tutto export PDF ordine.
+\par\tab\bullet\tab `Scarica tutto Excel`: genera (se manca) e scarica tutto export Excel ordine.
+\par\tab\bullet\tab `Ripristino valori calcolati`: annulla override manuali volume/pesi/pallet e ripristina calcolo motore.
+\par
+\par\b\fs30 3) Nested manuale: quando usarlo e logica\b0\fs22\par
+\par
+\par Usalo quando il parser non riconosce bene il nest o lâ€™ordine cliente Ã¨ incoerente.
+\par
+\par Regole pratiche:
+\par\tab\bullet\tab stesso gruppo nest = stesso `Master Carton` per tutte le SKU del gruppo.
+\par\tab\bullet\tab se `Master Carton` differisce nello stesso gruppo -> errore bloccante.
+\par\tab\bullet\tab store-ready per SKU viene riconciliato dal master del gruppo (se possibile).
+\par\tab\bullet\tab se quantitÃ  DC non divisibili per pack del gruppo -> warning/errore.
+\par
+\par Cosa aspettarti:
+\par\tab\bullet\tab badge `Nested riconciliato automaticamente` quando il sistema ha corretto store-ready incoerenti.
+\par\tab\bullet\tab in caso di incongruenza forte, blocco calcoli/documenti finchÃ© non correggi.
+\par
+\par\b\fs30 4) Come funziona lâ€™aumento automatico +2%\b0\fs22\par
+\par
+\par Regola chiave:
+\par\tab\bullet\tab +2% massimo per singolo DC, mai sul totale ordine globale.
+\par
+\par Mono:
+\par\tab\bullet\tab usa pack mono (`master carton`) e prende il massimo numero di cartoni completi entro +2%.
+\par
+\par Nested:
+\par\tab\bullet\tab calcolo a livello gruppo nest, non per SKU indipendente.
+\par\tab\bullet\tab tutte le SKU del gruppo devono convergere allo stesso numero cartoni gruppo.
+\par
+\par Effetto:
+\par\tab\bullet\tab se il +2% non basta ad aggiungere un cartone completo, quantitÃ  resta invariata.
+\par
+\par\b\fs30 5) Generazione documenti: singola e massiva\b0\fs22\par
+\par
+\par\b\fs30 5.1 Generazione singola per DC\b0\fs22\par
+\par
+\par Nel riquadro DC:
+\par 1. Scegli tipo documento.
+\par 2. Scegli formato (PDF/Excel).
+\par 3. `Genera`.
+\par
+\par Tipi disponibili:
+\par\tab\bullet\tab Packing List: sempre.
+\par\tab\bullet\tab DLE: sempre.
+\par\tab\bullet\tab Sfarinati: solo se almeno un prodotto ha flag `HAS_SFARINATI`.
+\par\tab\bullet\tab P2: solo se almeno un prodotto ha flag `HAS_P2`.
+\par
+\par\b\fs30 5.2 Generazione massiva\b0\fs22\par
+\par
+\par\tab\bullet\tab `Scarica tutto PDF` / `Scarica tutto Excel`:
+\par   - genera i documenti export mancanti
+\par   - crea ZIP unico per PO
+\par   - include solo documenti export (no ordine fornitore)
+\par
+\par\b\fs30 6) Numero fattura e data fattura: logica corretta\b0\fs22\par
+\par
+\par Campi per DC:
+\par\tab\bullet\tab ogni DC puÃ² avere proprio numero fattura e data.
+\par
+\par Campo progressivo:
+\par\tab\bullet\tab se compili `xxx/EM/AAAA`, il sistema propone incremento progressivo sui DC successivi.
+\par\tab\bullet\tab resta sempre modificabile manualmente in ogni DC.
+\par
+\par Data fattura comune:
+\par\tab\bullet\tab Ã¨ una scorciatoia di compilazione.
+\par\tab\bullet\tab dopo applicazione, ogni DC resta comunque editabile.
+\par
+\par\b\fs30 7) Override logistici DC (volume, pesi, pallet)\b0\fs22\par
+\par
+\par Campi editabili:
+\par\tab\bullet\tab Volume (mÂ³)
+\par\tab\bullet\tab Peso lordo
+\par\tab\bullet\tab Peso netto
+\par\tab\bullet\tab Pallets
+\par
+\par Uso:
+\par\tab\bullet\tab se il rilevato reale magazzino differisce dal calcolo automatico.
+\par
+\par Importante:
+\par\tab\bullet\tab dopo override, packing list e riepiloghi usano i valori salvati.
+\par\tab\bullet\tab con `Ripristino valori calcolati` torni ai valori del motore.
+\par
+\par\b\fs30 8) Logica giacenze: come funziona davvero\b0\fs22\par
+\par
+\par Due livelli:
+\par\tab\bullet\tab giacenza prodotto
+\par\tab\bullet\tab giacenza packaging
+\par
+\par Meccanismo:
+\par\tab\bullet\tab ogni ordine consuma pezzi e/o packaging in base ai coefficienti prodotto.
+\par\tab\bullet\tab i consumi finiscono nello storico movimentazioni.
+\par
+\par Esempio packaging:
+\par\tab\bullet\tab stock iniziale 10 kg
+\par\tab\bullet\tab coefficiente 0,01 kg/pezzo
+\par\tab\bullet\tab consumo totale 467 pezzi -> 4,67 kg
+\par\tab\bullet\tab stock residuo 5,33 kg
+\par
+\par Alert:
+\par\tab\bullet\tab scattano quando il livello attuale scende sotto soglia.
+\par\tab\bullet\tab appaiono in Dashboard (solo alert attivi correnti).
+\par
+\par\b\fs30 9) Import/Export anagrafiche: uso sicuro\b0\fs22\par
+\par
+\par Per `Fornitori` e `Prodotti`:
+\par\tab\bullet\tab `Export Excel`: scarica stato anagrafica attuale.
+\par\tab\bullet\tab modifica offline in Excel.
+\par\tab\bullet\tab `Import Excel`: ricarica e rende attive le modifiche.
+\par
+\par Buona pratica:
+\par 1. esporta sempre prima di cambiare;
+\par 2. conserva backup con data;
+\par 3. reimporta;
+\par 4. verifica su un ordine test.
+\par
+\par\b\fs30 10) Correzione errori frequenti (operativa)\b0\fs22\par
+\par
+\par 1. Documento DC non disponibile:
+\par\tab\bullet\tab verifica flag prodotto (`HAS_SFARINATI`, `HAS_P2`).
+\par
+\par 2. Fornitore errato:
+\par\tab\bullet\tab verifica match vendor style -> anagrafica prodotti -> fornitore.
+\par
+\par 3. Nested incoerente:
+\par\tab\bullet\tab controlla master carton gruppo e divisibilitÃ  quantitÃ  DC.
+\par
+\par 4. Totali non tornano:
+\par\tab\bullet\tab verifica se ci sono override manuali DC attivi.
+\par
+\par 5. Dati cambiati ma non visibili:
+\par\tab\bullet\tab premere `Salva modifiche` / `Salva DC` nel blocco corretto.
+\par
+\par\b\fs30 11) Procedura rapida consigliata per ogni nuovo PO\b0\fs22\par
+\par
+\par 1. Import PDF.
+\par 2. Apri ordine.
+\par 3. Controlla warning.
+\par 4. Se serve: `Nest manuali` + `Aggiusta qty ordine`.
+\par 5. Applica +2% operativo (se richiesto).
+\par 6. Compila fatture DC.
+\par 7. Controlla riepilogo DC.
+\par 8. Genera documenti.
+\par 9. Scarica tutto.
+\par 10. Segna spedito.
+}
